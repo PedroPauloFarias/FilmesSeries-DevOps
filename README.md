@@ -197,6 +197,28 @@ FilmesSeries-DevOps/
 └── README.md
 
 
+## Uso de Inteligência Artificial
+
+Durante o desenvolvimento deste projeto, utilizamos IA (Claude - Anthropic) como ferramenta de apoio, conforme permitido pela atividade.
+
+### Como foi utilizada
+
+- **Diagnóstico de erros** — a IA ajudou a identificar e explicar os erros que apareciam nos logs dos containers, como o `Cannot find module '../controllers/filmes'` e o `CustomEvent is not defined`
+- **Sugestões de correção** — após apontar os erros, a IA sugeriu as correções necessárias, que foram aplicadas e testadas pela equipe
+- **Estruturação dos arquivos** — auxiliou na criação do `docker-compose.yml`, `Dockerfiles` e do workflow `ci.yml`, seguindo as boas práticas DevOps exigidas na atividade
+- **Escrita dos testes** — ajudou a reescrever os testes com mocks do `pg` para que funcionassem sem dependência de banco de dados real no CI
+- **Documentação** — apoiou na estruturação deste README
+
+### O que foi feito pela equipe
+
+- Compreensão de cada arquivo gerado antes de aplicar
+- Execução e validação de todos os comandos no ambiente local
+- Tomada de decisões sobre a arquitetura do projeto
+- Configuração do repositório, branches, issues e secrets no GitHub
+- Testes manuais da aplicação rodando via Docker
+
+> A IA foi usada como ferramenta de apoio ao aprendizado, não como substituto do entendimento do conteúdo.
+
 ## Integrantes
 
 - Pedro Paulo Farias — Docker, CI/CD, CSS/Responsividade, Configuração de rotas
