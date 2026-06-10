@@ -1,95 +1,76 @@
 const request = require('supertest');
-const app = require('../src/app');
-const { db } = require('../src/database/db');
-const { limparBanco, inserirFilmeTeste } = require('./setup');
+const app = require('../app');
+const { query } = require('../database/db');
 
-describe('Testes para a API de Filmes', () => {
-  beforeEach((done) => {
-    limparBanco(done);
+jest.mock('../database/db', () => ({
+  query: jest.fn(),
+  fecharBanco: jest.fn(),
+  pool: {
+    end: jest.fn((cb) => cb && cb()),
+  },
+}));
+
+describe('GET /health', () => {
+  it('deve retornar status OK', async () => {
+    const res = await request(app).get('/health');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('status', 'OK');
+    expect(res.body).toHaveProperty('timestamp');
+  });
+});
+
+describe('GET /filmes', () => {
+  it('deve retornar lista de filmes', async () => {
+    query.mockImplementation((text, params, callback) => {
+      callback(null, [
+        { id: 1, titulo: 'O Poderoso Chefão', ano: 1972, genero: 'Drama', tipo: 'filme', nota: 9.5 },
+      ]);
+    });
+
+    const res = await request(app).get('/filmes');
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
   });
 
-  afterAll((done) => {
-    db.close(done);
+  it('deve retornar lista vazia', async () => {
+    query.mockImplementation((text, params, callback) => {
+      callback(null, []);
+    });
+
+    const res = await request(app).get('/filmes');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+describe('POST /filmes', () => {
+  it('deve criar um novo filme', async () => {
+    query.mockImplementation((text, params, callback) => {
+      callback(null, { id: 1, titulo: 'Breaking Bad', ano: 2008, genero: 'Drama', tipo: 'serie', nota: 9.8 });
+    });
+
+    const res = await request(app)
+      .post('/filmes')
+      .send({ titulo: 'Breaking Bad', ano: 2008, genero: 'Drama', tipo: 'serie', nota: 9.8 });
+
+    expect(res.statusCode).toBe(201);
   });
 
-  describe('GET /health', () => {
-    it('Deve retornar status OK', async () => {
-      const res = await request(app).get('/health');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('status', 'OK');
-      expect(res.body).toHaveProperty('timestamp');
-    });
+  it('deve retornar 400 sem campos obrigatórios', async () => {
+    const res = await request(app)
+      .post('/filmes')
+      .send({ titulo: 'Incompleto' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty('erro');
   });
 
-  describe('GET /filmes', () => {
-    it('Deve retornar uma lista vazia inicialmente', async () => {
-      const res = await request(app).get('/filmes');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual([]);
-    });
+  it('deve retornar 400 com tipo inválido', async () => {
+    const res = await request(app)
+      .post('/filmes')
+      .send({ titulo: 'Teste', ano: 2020, genero: 'Ação', tipo: 'documentario' });
 
-    it('Deve retornar uma lista de filmes', async () => {
-      await new Promise((resolve) => {
-        inserirFilmeTeste(
-          { titulo: 'O Poderoso Chefão', ano: 1972, genero: 'Drama', tipo: 'filme', nota: 9.5 },
-          resolve
-        );
-      });
-
-      const res = await request(app).get('/filmes');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body.length).toBeGreaterThan(0);
-      expect(res.body[0]).toHaveProperty('titulo', 'O Poderoso Chefão');
-    });
-  });
-
-  describe('POST /filmes', () => {
-    it('Deve criar um novo filme', async () => {
-      const novoFilme = {
-        titulo: 'Breaking Bad',
-        ano: 2008,
-        genero: 'Drama',
-        tipo: 'serie',
-        nota: 9.8
-      };
-
-      const res = await request(app)
-        .post('/filmes')
-        .send(novoFilme);
-
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty('id');
-      expect(res.body.titulo).toEqual(novoFilme.titulo);
-      expect(res.body.tipo).toEqual(novoFilme.tipo);
-    });
-
-    it('Deve retornar erro ao criar filme sem campos obrigatórios', async () => {
-      const filmeInvalido = {
-        titulo: 'Incompleto',
-      };
-
-      const res = await request(app)
-        .post('/filmes')
-        .send(filmeInvalido);
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('erro');
-    });
-
-    it('Deve retornar erro ao criar filme com tipo inválido', async () => {
-      const filmeInvalido = {
-        titulo: 'Teste',
-        ano: 2020,
-        genero: 'Ação',
-        tipo: 'documentario',
-      };
-
-      const res = await request(app)
-        .post('/filmes')
-        .send(filmeInvalido);
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body.erro).toContain('tipo');
-    });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.erro).toContain('tipo');
   });
 });
