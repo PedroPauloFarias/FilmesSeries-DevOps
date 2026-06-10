@@ -22,9 +22,11 @@ describe('GET /health', () => {
 describe('GET /filmes', () => {
   it('deve retornar lista de filmes', async () => {
     query.mockImplementation((text, params, callback) => {
-      callback(null, [
-        { id: 1, titulo: 'O Poderoso Chefão', ano: 1972, genero: 'Drama', tipo: 'filme', nota: 9.5 },
-      ]);
+      callback(null, {
+        rows: [
+          { id: 1, titulo: 'O Poderoso Chefão', ano: 1972, genero: 'Drama', tipo: 'filme', nota: 9.5 },
+        ],
+      });
     });
 
     const res = await request(app).get('/filmes');
@@ -34,7 +36,7 @@ describe('GET /filmes', () => {
 
   it('deve retornar lista vazia', async () => {
     query.mockImplementation((text, params, callback) => {
-      callback(null, []);
+      callback(null, { rows: [] });
     });
 
     const res = await request(app).get('/filmes');
@@ -46,7 +48,9 @@ describe('GET /filmes', () => {
 describe('POST /filmes', () => {
   it('deve criar um novo filme', async () => {
     query.mockImplementation((text, params, callback) => {
-      callback(null, { id: 1, titulo: 'Breaking Bad', ano: 2008, genero: 'Drama', tipo: 'serie', nota: 9.8 });
+      callback(null, {
+        rows: [{ id: 1, titulo: 'Breaking Bad', ano: 2008, genero: 'Drama', tipo: 'serie', nota: 9.8 }],
+      });
     });
 
     const res = await request(app)
