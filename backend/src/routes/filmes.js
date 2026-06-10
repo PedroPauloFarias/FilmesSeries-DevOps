@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { obterFilmes, criarFilme } = require('../controllers/filmes');
+const { obterFilmes, criarFilme } = require('../controller/filmes');
 
 router.get('/', obterFilmes);
 

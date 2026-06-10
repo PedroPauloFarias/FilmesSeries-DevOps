@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -8,6 +8,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 5173
-EXPOSE 3001
 
-CMD ["sh", "-c", "npx json-server --watch src/data/db.json --port 3001 & npm run dev -- --host"]
+CMD ["npm", "run", "dev", "--", "--host"]
